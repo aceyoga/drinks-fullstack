@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from .db import get_db_connection
 
 def index(request):
@@ -38,6 +39,7 @@ def get_drink(request, drink_id):
         if cursor:
             cursor.close()
 
+@csrf_exempt
 def create_drink(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -58,6 +60,7 @@ def create_drink(request):
             if cursor:
                 cursor.close()
 
+@csrf_exempt
 def update_drink(request, drink_id):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -78,6 +81,7 @@ def update_drink(request, drink_id):
             if cursor:
                 cursor.close()
 
+@csrf_exempt
 def delete_drink(request, drink_id):
     if request.method == 'DELETE':
         try:
