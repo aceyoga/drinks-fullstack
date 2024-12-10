@@ -44,7 +44,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',  # Added this line
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -62,7 +62,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',  # Added this line
+                'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
         },
@@ -70,14 +70,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'drinks_fullstack.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-#
-DATABASES = {
-    'default': dj_database_url.config(default="postgresql://postgres.kktlpydtltwixpxpmrat:Skibidi1234@aws-0-us-east-1.pooler.supabase.com:5432/postgres")
-}
 
 
 # Internationalization
