@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drinks CRUD</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">Drinks CRUD</h1>
+        <button class="btn btn-primary mb-4" data-toggle="modal" data-target="#drinkModal">Add Drink</button>
+        <table class="table table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="drinks-table-body">
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="drinkModal" tabindex="-1" aria-labelledby="drinkModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="drinkModalLabel">Add/Edit Drink</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="drink-form">
+                        <input type="hidden" id="drink-id">
+                        <input type="hidden" name="csrfmiddlewaretoken" id="csrf-token" value="{{ csrf_token }}">
+                        <div class="form-group">
+                            <label for="name">Name:</label>
+                            <input type="text" id="name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description:</label>
+                            <input type="text" id="description" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="price">Price:</label>
+                            <input type="number" id="price" class="form-control" step="0.01" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('drink-form');
+            const drinkIdInput = document.getElementById('drink-id');
+            const nameInput = document.getElementById('name');
+            const descriptionInput = document.getElementById('description');
+            const priceInput = document.getElementById('price');
+            const csrfToken = document.getElementById('csrf-token').value;
+            const drinksTableBody = document.getElementById('drinks-table-body');
+
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const drinkId = drinkIdInput.value;
+                const name = nameInput.value;
+                const description = descriptionInput.value;
+                const price = priceInput.value;
+
+                if (drinkId) {
+                    updateDrink(drinkId, name, description, price);
+                } else {
+                    createDrink(name, description, price);
+                }
+            });
+
+            function fetchDrinks() {
+                fetch('/api/drinks/')
+                    .then(response => response.json())
+                    .then(data => {
+                        drinksTableBody.innerHTML = '';
+                        data.forEach(drink => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${drink.name}</td>
+                                <td>${drink.description}</td>
+                                <td>${drink.price}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" onclick="editDrink(${drink.id})">Edit</button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteDrink(${drink.id})">Delete</button>
+                                </td>
+                            `;
+                            drinksTableBody.appendChild(row);
+                        });
+                    });
+            }
+
+            function createDrink(name, description, price) {
+                fetch('/api/drinks/create/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: `name=${name}&description=${description}&price=${price}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    fetchDrinks();
+                    form.reset();
+                    $('#drinkModal').modal('hide');
+                });
+            }
+
+            function updateDrink(id, name, description, price) {
+                fetch(`/api/drinks/update/${id}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: `name=${name}&description=${description}&price=${price}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    fetchDrinks();
+                    form.reset();
+                    $('#drinkModal').modal('hide');
+                });
+            }
+
+            window.editDrink = function(id) {
+                fetch(`/api/drinks/${id}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        drinkIdInput.value = data.id;
+                        nameInput.value = data.name;
+                        descriptionInput.value = data.description;
+                        priceInput.value = data.price;
+                        $('#drinkModal').modal('show');
+                    });
+            }
+
+            window.deleteDrink = function(id) {
+                fetch(`/api/drinks/delete/${id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    fetchDrinks();
+                });
+            }
+
+            fetchDrinks();
+        });
+    </script>
+</body>
+</html>
